@@ -1,60 +1,68 @@
-# 🌿 RootBound (Pure C Version)
+# 🌿 RootBound (Pure C Version) - Complete Guide
 
-RootBound is a top-down adventure game rewritten from the ground up in Pure C using the Raylib library. This version focuses on high performance, low memory overhead, and a clean architectural structure.
-
----
-
-## 🎮 For the Players (The Simple Version)
-
-### What is this?
-This is a game where you explore a world, interact with the environment, and progress through an adventure. Unlike most modern games, this one is written in **C**, which is one of the fastest and oldest programming languages in the world.
-
-### How to Run This Game on Windows
-Since this is a "Pure C" project, you can't just run a `.exe` immediately; you have to "build" it first.
-
-**1. Get the Tools:**
-*   **w64devkit:** This is the "compiler." It translates the C code into a language your computer understands. [Download here](https://github.com/skeetele/w64devkit).
-*   **Raylib:** This is the "graphics engine" that allows the game to draw images and handle sound. [Download here](https://www.raylib.com/).
-
-**2. Setup:**
-*   Download this repository as a ZIP file and extract it.
-*   Ensure the Raylib `include` and `lib` folders are placed where the compiler can find them (usually in the same project folder).
-
-**3. Launch:**
-*   Open the `w64devkit` terminal.
-*   Navigate to the game folder: `cd path/to/RootBound`
-*   Type `make` and press Enter.
-*   Run the game: `./rootbound.exe`
+Welcome to RootBound. This document serves as the definitive guide for this project. It is divided into two halves: the first half explains everything in simple, non-technical language, and the second half explains the same details using professional software engineering terms.
 
 ---
 
-## 🛠 For the Developers (The Technical Version)
+## 🌟 Part 1: The Simple Explanation (For Everyone)
 
-### Technical Architecture
-The project is implemented in **C99** and utilizes **Raylib** for hardware-accelerated 2D rendering. 
+### What is RootBound?
+RootBound is a 2D adventure game. Imagine a character walking around a world, interacting with things, and exploring. The "Pure C" part means the game is written in a very fundamental language that talks directly to your computer's brain (the CPU) without any "middleman" software slowing it down.
 
-**Key Technical Features:**
-*   **Manual Memory Management:** No garbage collector. All game entities and assets are allocated and freed manually to prevent memory leaks and ensure a constant frame rate.
-*   **Game Loop:** Implements a standard `Update -> Draw` loop. 
-    *   `Update()`: Handles input polling, collision detection, and state changes.
-    *   `Draw()`: Handles texture rendering and UI layering.
-*   **Struct-Based Entity System:** Uses C structs to define player and world properties, ensuring data is contiguous in memory for better CPU cache performance.
-*   **Modular Design:** The logic is split into separate `.c` and `.h` files (header files) to keep the codebase maintainable and scalable.
+### How the Game Actually Works (Step-by-Step)
+1. **The Heartbeat (The Loop):** The game runs in a circle, thousands of times per second.
+   - It asks: "Is the player pressing a key?"
+   - It calculates: "If the player moved right, are they hitting a wall?"
+   - It draws: "Clear the screen and draw the character in the new position."
+   - Then it repeats this instantly. This is why the game feels smooth.
 
-### Build System
-The project uses a **Makefile**. The Makefile automates the GCC compilation process, linking the `raylib` library and specifying the necessary flags (like `-Wall` for warnings and `-O3` for optimization).
+2. **The Graphics (Raylib):** Since C doesn't know how to "draw a picture" by itself, we use a tool called **Raylib**. Think of Raylib as a giant box of crayons and a canvas that the C code uses to paint the game on your screen.
 
-### Directory Structure
-- `/src`: Contains all the source code (`.c` files).
-- `/include`: Contains the header files (`.h`) defining the game's API.
-- `/assets`: Contains textures, sounds, and fonts.
-- `Makefile`: The build script for compiling the game.
+3. **The Memory (The Storage):** Most modern games (like Minecraft or Fortnite) have an automatic "cleaning crew" (called Garbage Collection) that deletes old data. RootBound doesn't have one. The programmer must manually tell the computer: "I am done with this piece of memory, you can have it back now." If we forget to do this, the game will "leak" memory and eventually crash.
+
+### How to actually play it on your PC
+Because this isn't a finished `.exe` app you download from a store, you have to "build" it. 
+- You download the **Code** (the instructions).
+- You use a **Compiler** (the translator) to turn those instructions into a file your Windows PC understands.
+- You provide the **Library** (Raylib), which provides the tools to make the images appear.
 
 ---
 
-## ⚠️ Known Issues & Troubleshooting
-*(We will be filling this section tomorrow as we squash bugs!)*
+## ⚙️ Part 2: The Technical Documentation (For Developers)
 
-- **Linker Errors:** Usually caused by Raylib not being in the correct search path.
-- **Black Screen:** Usually caused by missing asset files in the `/assets` folder.
-- **Crash on Start:** Check if the GPU drivers support OpenGL 3.3.
+### Core Architecture
+RootBound is implemented in **C99** leveraging the **Raylib** library for hardware-accelerated 2D rendering via OpenGL.
+
+#### 1. The Game Loop (The Main Execution Cycle)
+The engine operates on a synchronous `While` loop. Every iteration consists of three distinct phases:
+- **Input Polling:** Utilizing `IsKeyDown()` and `IsKeyPressed()` from the Raylib API to capture user input from the keyboard/gamepad.
+- **State Update:** The physics and logic layer. This handles coordinate translation, AABB (Axis-Aligned Bounding Box) collision detection, and entity state machine transitions.
+- **Render Phase:** The `BeginDrawing()` and `EndDrawing()` block. The screen is cleared using `ClearBackground()`, and textures are blitted to the screen using `DrawTextureRec()`.
+
+#### 2. Memory Management & Data Structures
+To ensure zero-latency and high cache efficiency, the project avoids high-level abstractions:
+- **Manual Allocation:** All dynamic memory is handled via `malloc()` and `free()`. Assets (textures, sounds) are loaded into VRAM at startup and explicitly unloaded at shutdown to prevent memory leaks.
+- **Struct-Oriented Design:** Instead of Classes (which C doesn't have), we use `structs` to encapsulate entity data (e.g., `Player` struct containing `Vector2 position`, `float speed`, `Rectangle bounds`).
+- **Pointer Arithmetic:** Used for efficient array traversal and manipulating game entities in the game world.
+
+#### 3. Compilation & Linking Process
+The project uses a **Makefile** to manage the build pipeline. The process is as follows:
+- **Preprocessing:** Handling `#include` directives and `#define` macros.
+- **Compilation:** Converting `.c` files into object files (`.o`) using the `gcc` compiler with optimization flag `-O3`.
+- **Linking:** The linker combines the object files with the `raylib.lib` (or `.a`) static library to produce the final binary executable.
+
+### Detailed Directory Breakdown
+- `src/`: contains the implementation logic. 
+    - `main.c`: Entry point, initializes the window and the main loop.
+    - `player.c`: Logic for movement, animation, and input.
+    - `world.c`: Handles map rendering and environment collisions.
+- `include/`: contains the `.h` (header) files. These act as "contracts" that tell other parts of the program what functions and structs are available.
+- `assets/`: Raw binary data (PNGs, WAVs) loaded into RAM at runtime.
+- `Makefile`: The script that tells `make` exactly how to compile the code without typing long commands every time.
+
+---
+
+## 🛠 Troubleshooting & Debugging
+- **Undefined Reference Errors:** This occurs if the linker cannot find the Raylib library files. Ensure `-lraylib` is present in the Makefile.
+- **Segmentation Faults (Crash):** Occurs when the program tries to access a memory address it doesn't own (Null Pointer). This is usually fixed by checking if `malloc` returned `NULL`.
+- **Asset Not Found:** Ensure the working directory is set to the project root, otherwise `LoadTexture()` will fail to find the path to the images.
